@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "src/basic_shellcode",
+    "src/polynomial_encode",
+    "src/polynomial_shellcode",
+    "src/polynomial_encode_csharp"
+
+]
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
