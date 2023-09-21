@@ -58,9 +58,9 @@ namespace ConsoleApp1
             BigInteger omega = 1;
             BigInteger inner_omega = 1;
             for (int i = 0; i < size; i++) {
-                BigInteger result = 0;
+                BigInteger result = poly[0];
                 inner_omega = omega;
-                for (int j = 0; j < size; j++) {
+                for (int j = 1; j < size; j++) {
                     result = (result + ((inner_omega * poly[j]) % field_modulus)) % field_modulus;
                     inner_omega = (inner_omega * omega) % field_modulus;
                 }

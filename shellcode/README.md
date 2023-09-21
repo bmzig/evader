@@ -1,10 +1,20 @@
 ## Complation Instructions
 
-### Windows
+### Windows x64
+``` bash
+# compilation
+> nasm -f win64 <file>.asm
+> ld -m i386pep -o <output> <file>.obj
+
+# check for bad characters in exploit dev
+> objdump -M intel -d <output>
+```
+
+### Windows x86 
 ``` bash
 # compilation
 > nasm -f win32 <file>.asm
-> ld -m elf_i386 -o <output> <file>.o
+> ld -m i386pe -o <output> <file>.obj
 
 # checking for bad characters for exploit dev
 > objdump -M intel -d <output>
@@ -17,7 +27,7 @@
 ``` bash
 # compilation
 > nasm -f macho64 <file>.asm
-> ld -L <MacOS linker> -lSystem <file>.o -o <output>
+> ld -L <MacOS linker> -lSystem <file>.obj -o <output>
 
 # check for charaters
 objdump -M intel -d <file>
